@@ -1,4 +1,5 @@
 import os
+import time
 import pathlib
 import numpy as np
 import pandas as pd
@@ -11,10 +12,17 @@ from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras.callbacks import EarlyStopping
 
+# TODO: Refactor! Add separate functions.
+
 plt.style.use('seaborn')
 
+baseDir = f'models/{int(time.time())}'
 trainDir = 'data/train'
 testDir = 'data/test'
+
+if not os.path.exists(baseDir):
+    os.makedirs(baseDir)
+
 batchSize = 32
 nEpochs = 5
 imgHeight = 48
@@ -92,7 +100,7 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy', 'AUC'])
 
 model.summary()
-plot_model(model, to_file='models/baseline_model.png', show_shapes=True, dpi=200)
+plot_model(model, to_file=f'{baseDir}/model_graph.png', show_shapes=True, dpi=200)
 
 earlyStopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 stepsPerEpoch = trainGenerator.samples // trainGenerator.batch_size
@@ -105,7 +113,7 @@ history = model.fit(trainGenerator, epochs=nEpochs,
                     callbacks=[earlyStopping],
                     class_weight=classWeights)
 
-model.save('models/baseline.model')
+model.save(f'{baseDir}/saved_model.model')
 
 testMetrics = model.evaluate(testGenerator)
 print('\n\tTest Metrics:')
@@ -118,26 +126,21 @@ y_test = testGenerator.classes
 classLabels = list(testGenerator.class_indices.keys())
 
 report = classification_report(y_test, y_pred, target_names=classLabels, output_dict=True)
-print('\n\tClassification Report')
-print(report)
-
 matrix = confusion_matrix(y_test, y_pred)
 matrix = matrix / matrix.astype(np.float).sum(axis=0)
-print('\n\tConfusion Matrix')
-print(matrix)
 
 df = pd.DataFrame(report)
 cr = sns.heatmap(df, annot=True, cmap='coolwarm')
 cr.yaxis.set_ticklabels(cr.yaxis.get_ticklabels(), rotation=0, ha='right', fontsize=10)
 cr.xaxis.set_ticklabels(cr.xaxis.get_ticklabels(), rotation=45, ha='right', fontsize=10)
-plt.savefig('models/baseline_cr.png')
+plt.savefig(f'{baseDir}/classification_report.png')
 plt.show()
 
 df = pd.DataFrame(matrix, index=classLabels, columns=classLabels)
 hm = sns.heatmap(df, annot=True, cmap='coolwarm')
 hm.yaxis.set_ticklabels(hm.yaxis.get_ticklabels(), rotation=0, ha='right', fontsize=10)
 hm.xaxis.set_ticklabels(hm.xaxis.get_ticklabels(), rotation=45, ha='right', fontsize=10)
-plt.savefig('models/baseline_cm.png')
+plt.savefig(f'{baseDir}/confusion_matrix.png')
 plt.show()
 
 plt.subplot(131)
@@ -164,5 +167,5 @@ plt.ylabel('AUC')
 plt.title('Area Under ROC')
 plt.legend()
 
-plt.savefig('models/baseline_history.png')
+plt.savefig(f'{baseDir}/training_history.png')
 plt.show()
