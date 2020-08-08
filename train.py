@@ -1,14 +1,16 @@
 import os
 import pathlib
-import numpy as np
 import matplotlib.pyplot as plt
+from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Flatten
 
 trainDir = 'data/train'
 testDir = 'data/test'
 batchSize = 32
+nEpochs = 2
 imgHeight = 48
 imgWidth = 48
 
@@ -26,7 +28,6 @@ for sno, class_ in enumerate(os.listdir(trainDir)):
 print(f'{classWeights = }')
 
 trainDatagen = ImageDataGenerator(
-    zca_whitening=True,
     rotation_range=20,
     horizontal_flip=True,
     width_shift_range=0.2,
@@ -38,18 +39,62 @@ trainDatagen = ImageDataGenerator(
 
 testDatagen = ImageDataGenerator(rescale=1 / 255.)
 
+print('Train Generator')
 trainGenerator = trainDatagen.flow_from_directory(
     directory=trainDir,
     target_size=(imgHeight, imgWidth),
     color_mode='grayscale',
-    class_mode='sparse',
+    class_mode='categorical',
     batch_size=batchSize,
     shuffle=True,
+    subset='training',
     seed=42)
 
+print('Validation Generator')
+valGenerator = trainDatagen.flow_from_directory(
+    directory=trainDir,
+    target_size=(imgHeight, imgWidth),
+    color_mode='grayscale',
+    class_mode='categorical',
+    batch_size=batchSize,
+    shuffle=True,
+    subset='validation',
+    seed=42)
+
+print('Test Generator')
 testGenerator = testDatagen.flow_from_directory(
     directory=testDir,
     target_size=(imgHeight, imgWidth),
     color_mode='grayscale',
-    class_mode='sparse',
+    class_mode='categorical',
     batch_size=batchSize)
+
+model = Sequential()
+model.add(Conv2D(64, 2, input_shape=(imgWidth, imgHeight, 1), activation='relu'))
+model.add(MaxPooling2D(2))
+model.add(Conv2D(64, 2, activation='relu'))
+model.add(MaxPooling2D(2))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dense(nClasses, activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy', 'AUC'])
+
+model.summary()
+
+stepsPerEpoch = trainGenerator.samples // trainGenerator.batch_size
+validationSteps = valGenerator.samples // valGenerator.batch_size
+
+history = model.fit(trainGenerator, epochs=nEpochs,
+                    steps_per_epoch=stepsPerEpoch,
+                    validation_data=valGenerator,
+                    validation_steps=validationSteps,
+                    class_weight=classWeights)
+
+model.save('models/baseline.model')
+
+testMetrics = model.evaluate(testGenerator)
+print('\n\tTest Metrics:')
+print(testMetrics)
