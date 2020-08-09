@@ -133,7 +133,7 @@ model.compile(loss='categorical_crossentropy',
 model.summary()
 plot_model(model, to_file=f'{baseDir}/model_graph.png', show_shapes=True, dpi=200)
 
-filePath = '{epoch:02d}_{val_loss:.2f}_{val_auc:.2f}.hdf5'
+filePath = '{epoch:02d}_{val_loss:.4f}_{val_auc:.4f}.hdf5'
 modelCheckpoint = ModelCheckpoint(f'{baseDir}/{filePath}', monitor='val_loss', save_best_only=True)
 earlyStopping = EarlyStopping(monitor='val_loss', patience=4)
 reduceLR = ReduceLROnPlateau(monitor='val_loss', patience=2)
@@ -148,13 +148,13 @@ history = model.fit(trainGenerator, epochs=nEpochs,
                     validation_steps=validationSteps,
                     callbacks=[earlyStopping, modelCheckpoint, reduceLR])
 
-model.save(f'{baseDir}/final_model.h5')
-
-testMetrics = model.evaluate(testGenerator)
+testLoss, testAccuracy, testAUC = model.evaluate(testGenerator)
 print('[INFO] Test Metrics:')
-print('[INFO] Test Loss =', testMetrics[0])
-print('[INFO] Test Accuracy =', testMetrics[1])
-print('[INFO] Test AUC =', testMetrics[2])
+print(f'[INFO] {testLoss = }')
+print(f'[INFO] {testAccuracy = }')
+print(f'[INFO] {testAUC = }')
+
+model.save(f'{baseDir}/final_model_{testLoss:.4f}_{testAccuracy:.4f}_{testAUC:.4f}.h5')
 
 y_pred = np.argmax(model.predict(testGenerator), axis=-1)
 y_test = testGenerator.classes
