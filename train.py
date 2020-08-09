@@ -8,15 +8,16 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, classification_report
 from tensorflow.keras import Sequential
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
+from tensorflow.keras.layers import Dense, Conv2D, MaxPool2D, Flatten, Activation
+from tensorflow.keras.layers import Dropout, BatchNormalization
 from tensorflow.keras.utils import plot_model
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 
 # TODO: Refactor! Add separate functions.
 
 plt.style.use('seaborn')
 
-baseDir = f'models/{int(time.time())}'
+baseDir = f'models/model_{int(time.time())}'
 trainDir = 'data/train'
 testDir = 'data/test'
 
@@ -30,30 +31,27 @@ imgWidth = 48
 
 nClasses = len(list(os.listdir(trainDir)))
 numberOfTrainingImages = len(list(pathlib.Path(trainDir).glob('*/*.jpg')))
-print(f'{nClasses = }')
-print(f'{numberOfTrainingImages = }')
+print(f'[INFO] {nClasses = }')
+print(f'[INFO] {numberOfTrainingImages = }')
 
 classWeights = {}
 for sno, class_ in enumerate(os.listdir(trainDir)):
     bincount = len(list(os.listdir(os.path.join(trainDir, class_))))
-    print(f'{class_ = }, {bincount = }')
+    print(f'[INFO] {class_ = }, {bincount = }')
     classWeights[sno] = numberOfTrainingImages / (nClasses * bincount)
 
-print(f'{classWeights = }')
+print(f'[INFO] {classWeights = }')
 
 trainDatagen = ImageDataGenerator(
-    rotation_range=20,
+    rotation_range=10,
     horizontal_flip=True,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
-    shear_range=0.2,
     zoom_range=0.2,
     rescale=1 / 255.,
     validation_split=0.2)
 
 testDatagen = ImageDataGenerator(rescale=1 / 255.)
 
-print('Train Generator')
+print('[INFO] Train Generator')
 trainGenerator = trainDatagen.flow_from_directory(
     directory=trainDir,
     target_size=(imgHeight, imgWidth),
@@ -64,7 +62,7 @@ trainGenerator = trainDatagen.flow_from_directory(
     subset='training',
     seed=42)
 
-print('Validation Generator')
+print('[INFO] Validation Generator')
 valGenerator = trainDatagen.flow_from_directory(
     directory=trainDir,
     target_size=(imgHeight, imgWidth),
@@ -75,7 +73,7 @@ valGenerator = trainDatagen.flow_from_directory(
     subset='validation',
     seed=42)
 
-print('Test Generator')
+print('[INFO] Test Generator')
 testGenerator = testDatagen.flow_from_directory(
     directory=testDir,
     target_size=(imgHeight, imgWidth),
@@ -84,16 +82,49 @@ testGenerator = testDatagen.flow_from_directory(
     batch_size=batchSize)
 
 model = Sequential()
-model.add(Conv2D(32, 3, input_shape=(imgWidth, imgHeight, 1), activation='relu', padding='same'))
-model.add(MaxPooling2D(2))
-model.add(Conv2D(64, 3, activation='relu', padding='same'))
-model.add(MaxPooling2D(2))
-model.add(Conv2D(128, 2, activation='relu', padding='same'))
-model.add(MaxPooling2D(2))
+
+model.add(Conv2D(64, (3, 1), padding='same', input_shape=(imgWidth, imgHeight, 1)))
+model.add(Conv2D(64, (1, 3), padding='same'))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(MaxPool2D(pool_size=(2, 2), padding='same'))
+model.add(Dropout(0.25))
+
+model.add(Conv2D(128, (3, 1), padding='same'))
+model.add(Conv2D(128, (1, 3), padding='same'))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(MaxPool2D(pool_size=(2, 2), padding='same'))
+model.add(Dropout(0.25))
+
+model.add(Conv2D(256, (3, 1), padding='same'))
+model.add(Conv2D(256, (1, 3), padding='same'))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(MaxPool2D(pool_size=(2, 2), padding='same'))
+model.add(Dropout(0.25))
+
+model.add(Conv2D(512, (3, 1), padding='same'))
+model.add(Conv2D(512, (1, 3), padding='same'))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(MaxPool2D(pool_size=(2, 2), padding='same'))
+model.add(Dropout(0.25))
+
 model.add(Flatten())
-model.add(Dense(512, activation='relu'))
-model.add(Dense(128, activation='relu'))
-model.add(Dense(nClasses, activation='softmax'))
+
+model.add(Dense(512))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(Dropout(0.25))
+
+model.add(Dense(256))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(Dropout(0.25))
+
+model.add(Dense(nClasses))
+model.add(Activation('softmax'))
 
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
@@ -102,24 +133,28 @@ model.compile(loss='categorical_crossentropy',
 model.summary()
 plot_model(model, to_file=f'{baseDir}/model_graph.png', show_shapes=True, dpi=200)
 
-earlyStopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+filePath = '{epoch:02d}_{val_loss:.2f}_{val_auc:.2f}.hdf5'
+modelCheckpoint = ModelCheckpoint(f'{baseDir}/{filePath}', monitor='val_loss', save_best_only=True)
+earlyStopping = EarlyStopping(monitor='val_loss', patience=4)
+reduceLR = ReduceLROnPlateau(monitor='val_loss', patience=2)
+
 stepsPerEpoch = trainGenerator.samples // trainGenerator.batch_size
 validationSteps = valGenerator.samples // valGenerator.batch_size
 
 history = model.fit(trainGenerator, epochs=nEpochs,
+                    class_weight=classWeights,
                     steps_per_epoch=stepsPerEpoch,
                     validation_data=valGenerator,
                     validation_steps=validationSteps,
-                    callbacks=[earlyStopping],
-                    class_weight=classWeights)
+                    callbacks=[earlyStopping, modelCheckpoint, reduceLR])
 
-model.save(f'{baseDir}/saved_model.model')
+model.save(f'{baseDir}/final_model.h5')
 
 testMetrics = model.evaluate(testGenerator)
-print('\n\tTest Metrics:')
-print('Test Loss =', testMetrics[0])
-print('Test Accuracy =', testMetrics[1])
-print('Test AUC =', testMetrics[2])
+print('[INFO] Test Metrics:')
+print('[INFO] Test Loss =', testMetrics[0])
+print('[INFO] Test Accuracy =', testMetrics[1])
+print('[INFO] Test AUC =', testMetrics[2])
 
 y_pred = np.argmax(model.predict(testGenerator), axis=-1)
 y_test = testGenerator.classes
