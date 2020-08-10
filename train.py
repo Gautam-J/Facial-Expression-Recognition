@@ -3,12 +3,13 @@ import numpy as np
 from tensorflow.keras.utils import plot_model
 from sklearn.metrics import confusion_matrix, classification_report
 
-from utils import getClassWeights, createBaseDir
-from utils import getTrainGenerator, getValGenerator, getTestGenerator
-from utils import buildModel, getModelCallbacks
-from utils import plotClassificationReport, plotConfusionMatrix, plotTrainingHistory
+from model_configs import buildModel, getModelCallbacks
+from generators import getTrainGenerator, getValGenerator, getTestGenerator
+from utils import getClassWeights, createBaseDir, getBaseDir, getNumberOfClasses
+from visualizations import plotClassificationReport, plotConfusionMatrix, plotTrainingHistory
 
-baseDir = createBaseDir()
+createBaseDir()
+baseDir = getBaseDir()
 trainDir = 'data/train'
 testDir = 'data/test'
 
@@ -32,7 +33,9 @@ testGenerator = getTestGenerator(testDir,
                                  (imgWidth, imgHeight),
                                  batchSize)
 
-model = buildModel(input_shape=(imgWidth, imgHeight, 1))
+nClasses = getNumberOfClasses(trainDir)
+model = buildModel(input_shape=(imgWidth, imgHeight, 1),
+                   number_of_classes=nClasses)
 
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
@@ -42,7 +45,7 @@ plot_model(model, to_file=f'{baseDir}/model_graph.png', show_shapes=True, dpi=20
 
 stepsPerEpoch = trainGenerator.samples // trainGenerator.batch_size
 validationSteps = valGenerator.samples // valGenerator.batch_size
-callBacks = getModelCallbacks()
+callBacks = getModelCallbacks(baseDir)
 
 history = model.fit(trainGenerator, epochs=nEpochs,
                     class_weight=classWeights,
@@ -71,10 +74,10 @@ matrix = confusion_matrix(y_test, y_pred)
 matrix = matrix / matrix.astype(np.float).sum(axis=0)  # normalize confusion matrix
 
 print('[INFO] Plotting classification report')
-plotClassificationReport(report)
+plotClassificationReport(report, baseDir)
 
 print('[INFO] Plotting confusion matrix')
-plotConfusionMatrix(matrix, classLabels)
+plotConfusionMatrix(matrix, classLabels, baseDir)
 
 print('[INFO] Plotting training history')
-plotTrainingHistory(history)
+plotTrainingHistory(history, baseDir)
