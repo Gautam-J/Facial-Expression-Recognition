@@ -3,7 +3,7 @@ import numpy as np
 from tensorflow.keras.utils import plot_model
 from sklearn.metrics import confusion_matrix, classification_report
 
-from utils import getClassWeights, createBaseDir, getNumberOfClasses
+from utils import getClassWeights, createBaseDir
 from utils import getTrainGenerator, getValGenerator, getTestGenerator
 from utils import buildModel, getModelCallbacks
 from utils import plotClassificationReport, plotConfusionMatrix, plotTrainingHistory
@@ -13,7 +13,7 @@ trainDir = 'data/train'
 testDir = 'data/test'
 
 batchSize = 32
-nEpochs = 5
+nEpochs = 2
 imgHeight = 48
 imgWidth = 48
 
@@ -32,8 +32,7 @@ testGenerator = getTestGenerator(testDir,
                                  (imgWidth, imgHeight),
                                  batchSize)
 
-model = buildModel(input_shape=(imgWidth, imgHeight, 1),
-                   number_of_classes=getNumberOfClasses())
+model = buildModel(input_shape=(imgWidth, imgHeight, 1))
 
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
@@ -75,7 +74,7 @@ print('[INFO] Plotting classification report')
 plotClassificationReport(report)
 
 print('[INFO] Plotting confusion matrix')
-plotConfusionMatrix(matrix)
+plotConfusionMatrix(matrix, classLabels)
 
 print('[INFO] Plotting training history')
 plotTrainingHistory(history)

@@ -35,6 +35,7 @@ def getNumberOfTrainingImages(path_to_train_dir):
 
 
 def getClassWeights(path_to_train_dir):
+    global nClasses
 
     nClasses = getNumberOfClasses(path_to_train_dir)
     numberOfTrainingImages = getNumberOfTrainingImages(path_to_train_dir)
@@ -112,7 +113,7 @@ def getTestGenerator(directory, target_size, batch_size):
     return testGenerator
 
 
-def buildModel(input_shape, number_of_classes):
+def buildModel(input_shape):
     model = Sequential()
 
     model.add(Conv2D(64, (3, 1), padding='same', input_shape=input_shape))
@@ -155,7 +156,7 @@ def buildModel(input_shape, number_of_classes):
     model.add(Activation('relu'))
     model.add(Dropout(0.25))
 
-    model.add(Dense(number_of_classes))
+    model.add(Dense(nClasses))
     model.add(Activation('softmax'))
 
     model.summary()
@@ -188,6 +189,7 @@ def plotClassificationReport(report):
                             rotation=45, ha='right', fontsize=10)
 
     plt.savefig(f'{baseDir}/classification_report.png')
+    plt.close()
 
 
 def plotConfusionMatrix(matrix, class_labels):
@@ -200,6 +202,7 @@ def plotConfusionMatrix(matrix, class_labels):
                             rotation=45, ha='right', fontsize=10)
 
     plt.savefig(f'{baseDir}/confusion_matrix.png')
+    plt.close()
 
 
 def plotTrainingHistoryLoss(history):
@@ -210,6 +213,7 @@ def plotTrainingHistoryLoss(history):
     plt.title('Loss')
     plt.legend()
     plt.savefig(f'{baseDir}/training_history_loss.png')
+    plt.close()
 
 
 def plotTrainingHistoryAccuracy(history):
@@ -220,6 +224,7 @@ def plotTrainingHistoryAccuracy(history):
     plt.title('Accuracy')
     plt.legend()
     plt.savefig(f'{baseDir}/training_history_accuracy.png')
+    plt.close()
 
 
 def plotTrainingHistoryAUC(history):
@@ -230,6 +235,7 @@ def plotTrainingHistoryAUC(history):
     plt.title('Area Under ROC')
     plt.legend()
     plt.savefig(f'{baseDir}/training_history_AUC.png')
+    plt.close()
 
 
 def plotTrainingHistory(history):
