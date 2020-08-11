@@ -1,6 +1,7 @@
 import numpy as np
 
 from tensorflow.keras.utils import plot_model
+from tensorflow.keras.optimizers import Adam
 from sklearn.metrics import confusion_matrix, classification_report
 
 from model_configs import buildModel, getModelCallbacks
@@ -14,6 +15,7 @@ testDir = 'data/test'
 
 batchSize = 32
 nEpochs = 2
+learningRate = 1e-2
 imgHeight = 48
 imgWidth = 48
 
@@ -37,7 +39,7 @@ model = buildModel(input_shape=(imgWidth, imgHeight, 1),
                    number_of_classes=nClasses)
 
 model.compile(loss='categorical_crossentropy',
-              optimizer='adam',
+              optimizer=Adam(lr=learningRate),
               metrics=['accuracy', 'AUC'])
 
 plot_model(model, to_file=f'{baseDir}/model_graph.png', show_shapes=True, dpi=200)

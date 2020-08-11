@@ -62,10 +62,11 @@ def getModelCallbacks(directory):
                                       monitor='val_loss',
                                       save_best_only=True)
 
-    earlyStopping = EarlyStopping(monitor='val_loss', patience=4,
+    earlyStopping = EarlyStopping(monitor='val_loss', patience=5,
                                   restore_best_weights=True)
 
-    reduceLR = ReduceLROnPlateau(monitor='val_loss', patience=2)
+    reduceLR = ReduceLROnPlateau(monitor='val_loss', patience=2,
+                                 factor=0.1, min_lr=1e-4)
 
     return [modelCheckpoint,
             earlyStopping,
