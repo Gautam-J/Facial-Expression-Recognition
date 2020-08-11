@@ -49,7 +49,6 @@ def getValGenerator(directory, target_size, batch_size):
 
 
 def getTestGenerator(directory, target_size, batch_size):
-    global testDatagen
     testDatagen = getTestDatagen()
 
     print('[INFO] Test Generator')
