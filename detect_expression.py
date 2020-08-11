@@ -5,7 +5,7 @@ from tensorflow.keras.models import load_model
 # TODO: Refactor! Add separate functions
 
 cascPath = 'haarcascade_frontalface_default.xml'
-pathToModel = 'models/model_1597145708/final_model_1.2708_0.5081_0.8653.h5'
+pathToModel = 'models/model_1597149633/final_model_1.1251_0.5770_0.8951.h5'
 classLabels = [
     'Angry',
     'Disgust',
@@ -32,6 +32,7 @@ while True:
         # crop out face from frame
         faceImg = gray[y:y + h, x:x + h]
 
+        # preprocess image for model prediction
         faceImg = cv2.resize(faceImg, (48, 48), interpolation=cv2.INTER_AREA)
         faceImg = faceImg.astype('float32').reshape(1, 48, 48, 1)
         faceImg *= 1. / 255
