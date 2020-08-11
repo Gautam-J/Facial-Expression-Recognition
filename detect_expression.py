@@ -5,7 +5,7 @@ from tensorflow.keras.models import load_model
 # TODO: Refactor! Add separate functions
 
 cascPath = 'haarcascade_frontalface_default.xml'
-pathToModel = 'models/model_1597079526/final_model_1.9175_0.3394_0.7450.h5'
+pathToModel = 'models/model_1597145708/final_model_1.2708_0.5081_0.8653.h5'
 classLabels = [
     'Angry',
     'Disgust',
@@ -33,7 +33,8 @@ while True:
         faceImg = gray[y:y + h, x:x + h]
 
         faceImg = cv2.resize(faceImg, (48, 48), interpolation=cv2.INTER_AREA)
-        faceImg = faceImg.reshape(1, 48, 48, 1)
+        faceImg = faceImg.astype('float32').reshape(1, 48, 48, 1)
+        faceImg *= 1. / 255
 
         predictionProbabilities = model.predict(faceImg)[0]
         predictionInteger = np.argmax(predictionProbabilities, axis=-1)

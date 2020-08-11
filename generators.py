@@ -3,9 +3,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 def getTrainDatagen():
     return ImageDataGenerator(
-        rotation_range=10,
+        rotation_range=5,
         horizontal_flip=True,
-        zoom_range=0.2,
         rescale=1 / 255.,
         validation_split=0.2)
 
