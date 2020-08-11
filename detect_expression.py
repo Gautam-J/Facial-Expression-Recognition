@@ -4,7 +4,7 @@ from tensorflow.keras.models import load_model
 
 # TODO: Refactor! Add separate functions
 
-cascPath = 'haarcascade_frontalface_default.xml'
+cascadePath = 'haarcascade_frontalface_default.xml'
 pathToModel = 'models/model_1597149633/final_model_1.1251_0.5770_0.8951.h5'
 classLabels = [
     'Angry',
@@ -16,7 +16,7 @@ classLabels = [
     'Surprise'
 ]
 
-faceCascade = cv2.CascadeClassifier(cascPath)
+faceCascade = cv2.CascadeClassifier(cascadePath)
 videoCapture = cv2.VideoCapture(0)
 model = load_model(pathToModel)
 
