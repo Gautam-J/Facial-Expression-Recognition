@@ -5,11 +5,10 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 from model_configs import buildModel, getModelCallbacks
 from generators import getTrainGenerator, getValGenerator, getTestGenerator
-from utils import getClassWeights, createBaseDir, getBaseDir, getNumberOfClasses
+from utils import getClassWeights, createBaseDir, getNumberOfClasses
 from visualizations import plotClassificationReport, plotConfusionMatrix, plotTrainingHistory
 
-createBaseDir()
-baseDir = getBaseDir()
+baseDir = createBaseDir()
 trainDir = 'data/train'
 testDir = 'data/test'
 

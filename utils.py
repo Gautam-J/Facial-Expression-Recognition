@@ -4,14 +4,11 @@ import pathlib
 
 
 def createBaseDir():
-    global baseDir
     baseDir = f'models/model_{int(time.time())}'
 
     if not os.path.exists(baseDir):
         os.makedirs(baseDir)
 
-
-def getBaseDir():
     return baseDir
 
 
