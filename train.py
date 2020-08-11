@@ -1,13 +1,16 @@
 import numpy as np
 
-from tensorflow.keras.utils import plot_model
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.utils import plot_model
 from sklearn.metrics import confusion_matrix, classification_report
 
 from model_configs import buildModel, getModelCallbacks
-from generators import getTrainGenerator, getValGenerator, getTestGenerator
 from utils import getClassWeights, createBaseDir, getNumberOfClasses
-from visualizations import plotClassificationReport, plotConfusionMatrix, plotTrainingHistory
+from generators import getTrainGenerator, getValGenerator, getTestGenerator
+
+from visualizations import (plotClassificationReport,
+                            plotConfusionMatrix,
+                            plotTrainingHistory)
 
 baseDir = createBaseDir()
 trainDir = 'data/train'
@@ -20,7 +23,6 @@ imgHeight = 48
 imgWidth = 48
 
 classWeights = getClassWeights(trainDir)
-print(f'[INFO] {classWeights = }')
 
 trainGenerator = getTrainGenerator(trainDir,
                                    (imgWidth, imgHeight),

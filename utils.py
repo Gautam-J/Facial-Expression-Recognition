@@ -25,13 +25,10 @@ def getClassWeights(path_to_train_dir):
 
     nClasses = getNumberOfClasses(path_to_train_dir)
     numberOfTrainingImages = getNumberOfTrainingImages(path_to_train_dir)
-    print(f'[INFO] {nClasses = }')
-    print(f'[INFO] {numberOfTrainingImages = }')
 
     classWeights = {}
     for sno, className in enumerate(os.listdir(path_to_train_dir)):
         bincount = len(list(os.listdir(os.path.join(path_to_train_dir, className))))
         classWeights[sno] = numberOfTrainingImages / (nClasses * bincount)
-        print(f'[INFO] {className = }, {bincount = }')
 
     return classWeights
