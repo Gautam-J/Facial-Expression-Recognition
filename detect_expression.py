@@ -4,7 +4,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 
 cascadePath = 'haarcascade_frontalface_default.xml'
-pathToModel = os.path.join('model', 'final_model_1.1251_0.5770_0.8951.h5')
+pathToModel = os.path.join('model', 'model.h5')
 classLabels = [
     'Angry',
     'Disgust',
