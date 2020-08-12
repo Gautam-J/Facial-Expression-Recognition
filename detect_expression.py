@@ -2,8 +2,6 @@ import cv2
 import numpy as np
 from tensorflow.keras.models import load_model
 
-# TODO: Refactor! Add separate functions
-
 cascadePath = 'haarcascade_frontalface_default.xml'
 pathToModel = 'models/model_1597149633/final_model_1.1251_0.5770_0.8951.h5'
 classLabels = [
