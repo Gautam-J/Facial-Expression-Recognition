@@ -1,7 +1,7 @@
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dropout, BatchNormalization
 from tensorflow.keras.layers import Dense, Conv2D, MaxPool2D, Flatten, Activation
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
 
 def buildModel(input_shape, number_of_classes):
@@ -64,9 +64,6 @@ def getModelCallbacks(directory):
 
     earlyStopping = EarlyStopping(monitor='val_loss', patience=15,
                                   restore_best_weights=True)
-
-    # reduceLR = ReduceLROnPlateau(monitor='val_loss', patience=5,
-                                 # factor=0.1, min_lr=1e-4)
 
     return [modelCheckpoint,
             earlyStopping]
