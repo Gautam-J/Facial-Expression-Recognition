@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from tensorflow.keras.models import load_model
 
-cascadePath = 'haarcascade_frontalface_default.xml'
+cascadePath = os.path.join('model', 'haarcascade_frontalface_default.xml')
 pathToModel = os.path.join('model', 'model.h5')
 classLabels = [
     'Angry',
